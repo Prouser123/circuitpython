@@ -27,6 +27,7 @@ HID_DEVICE_DATA = {
     "GAMEPAD" : DeviceData(report_length=6, out_report_length=0, usage_page=0x01, usage=0x05),     # Generic Desktop, Game Pad
     "DIGITIZER" : DeviceData(report_length=5, out_report_length=0, usage_page=0x0D, usage=0x02),   # Digitizers, Pen
     "XAC_COMPATIBLE_GAMEPAD" : DeviceData(report_length=3, out_report_length=0, usage_page=0x01, usage=0x05), # Generic Desktop, Game Pad
+    "NX_COMPATIBLE_GAMEPAD" : DeviceData(report_length=9, out_report_length=0, usage_page=0x01, usage=0x05),
     "RAW" : DeviceData(report_length=64, out_report_length=0, usage_page=0xFFAF, usage=0xAF),      # Vendor 0xFFAF "Adafruit", 0xAF
     }
 
@@ -258,6 +259,118 @@ def xac_compatible_gamepad_hid_descriptor(report_id):
              0xC0                #  End Collection
             )))
 
+def nx_compatible_gamepad_hid_descriptor(report_id):
+    data = HID_DEVICE_DATA["NX_COMPATIBLE_GAMEPAD"]
+    return hid.ReportDescriptor(
+        description="NX",
+        report_descriptor=bytes(
+            # This descriptor mimics the simple joystick from PDP that the XBox likes
+            (0x05, data.usage_page,  #  Usage Page (Desktop),
+             0x09, data.usage,       #  Usage (Gamepad),
+             0xA1, 0x01,             #  Collection (Application),
+            ) +
+            ((0x85, report_id) if report_id != 0 else ()) +
+            (0x15, 0x00,         #      Logical Minimum (0),
+             0x25, 0x01,         #      Logical Maximum (1),
+             0x35, 0x00,         #      Physical Minimum (0),
+             0x45, 0x01,         #      Physical Maximum (1),
+             0x75, 0x01,         #      Report Size (1),
+             0x95, 0x0d,         #      Report Count (13),
+             0x05, 0x09,         #      Usage Page (Button),
+             0x19, 0x01,         #      Usage Minimum (01h),
+             0x29, 0x0d,         #      Usage Maximum (13h),
+             0x81, 0x02,         #      Input (Variable),
+             0x95, 0x03,  # JCX (Report Count 3)
+             0x81, 0x01,         #      JCX Input (1),
+             0x05, 0x01,  #      JCX Usage Page (Button),
+             # Item(Global): Logical Maximum, data= [ 0x07 ] 7
+             0x25, 0x07,  #    JCX  Logical Maximum (7),
+             # Item(Global): Physical Maximum, data= [ 0x3b 0x01 ] 315
+             0x45, 0x3b, 0x01,  #    JCX  Physical Maximum (315),
+             # Item(Global): Report Size, data= [ 0x04 ] 4
+             0x75, 0x04,  #      JCX Report Size (4),
+             # Item(Global): Report Count, data= [ 0x01 ] 1
+             0x95, 0x01,  #     JCX Report Count (1),
+             # Item(Global): Unit, data= [ 0x14 ] 20
+                            #System: English Rotation, Unit: Degrees
+             0x65, 0x14,  # jcx unit (20)
+             #Item(Local ): Usage, data= [ 0x39 ] 57
+                            #Hat Switch
+             0x09, 0x39,  # jcx usage (57)
+             #Item(Main  ): Input, data= [ 0x42 ] 66
+             #               Data Variable Absolute No_Wrap Linear
+             #
+             #               Preferred_State Null_State Non_Volatile Bitfield
+             0x82, 0x42,
+             #Item(Global): Unit, data= [ 0x00 ] 0
+             #               System: None, Unit: (None)
+             0x65, 0x00,
+             # Item(Global): Report Count, data= [ 0x01 ] 1
+             0x95, 0x01,  #      Report Count,
+             # Item(Main  ): Input, data= [ 0x01 ] 1
+             #               Constant Array Absolute No_Wrap Linear
+             #               Preferred_State No_Null_Position Non_Volatile Bitfield
+             0x82, 0x01,
+             # Item(Global): Logical Maximum, data= [ 0xff 0x00 ] 255
+             0x25, 0xff, 0x00,  #      Logical Maximum,
+             #  Item(Global): Physical Maximum, data= [ 0xff 0x00 ] 255
+             0x45, 0xff, 0x00,  #      Physical Maximum,
+             # Item(Local ): Usage, data= [ 0x30 ] 48
+              #Direction-X
+             0x09, 0x30,  #      Usage (X),
+             #Item(Local ): Usage, data= [ 0x31 ] 49
+             #               Direction-Y
+             0x09, 0x31,
+             #Item(Local ): Usage, data= [ 0x32 ] 50
+                            #Direction-Z
+             0x09, 0x32,
+             # Item(Local ): Usage, data= [ 0x35 ] 53
+             #               Rotate-Z
+             0x09, 0x35,
+             #Item(Global): Report Size, data= [ 0x08 ] 8
+             0x75, 0x08,  #      Report Size (8),
+             # Item(Global): Report Count, data= [ 0x04 ] 4
+             0x95, 0x04,  #      Report Count (2),
+             #Item(Main  ): Input, data= [ 0x02 ] 2
+             #               Data Variable Absolute No_Wrap Linear
+             #               Preferred_State No_Null_Position Non_Volatile Bitfield
+             0x82, 0x02,
+             #Item(Global): Usage Page, data= [ 0x00 0xff ] 65280
+             #               (null)
+             0x05, 0x00, 0xff,  #      Usage Page (null),
+             #Item(Local ): Usage, data= [ 0x20 ] 32
+             #               (null)
+             0x09, 0x20,
+             # Item(Global): Report Count, data= [ 0x01 ] 1
+             0x95, 0x01,
+             #Item(Main  ): Input, data= [ 0x02 ] 2
+             #               Data Variable Absolute No_Wrap Linear
+             #               Preferred_State No_Null_Position Non_Volatile Bitfield
+             0x82, 0x02,
+             #Item(Local ): Usage, data= [ 0x21 0x26 ] 9761
+             #               (null)
+             0x09, 0x21, 0x26,
+             # Item(Global): Report Count, data= [ 0x08 ] 8
+             0x95, 0x08,  #      Report Count (8),
+             #Item(Main  ): Output, data= [ 0x02 ] 2
+             #               Data Variable Absolute No_Wrap Linear
+             #               Preferred_State No_Null_Position Non_Volatile Bitfield
+             # 0x91, 0x02, // Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+             0x92, 0x02,
+             # Item(Main  ): End Collection, data=none
+             0xC0  #  End Collection
+             # -----------------------------------------------------
+             #0x05, 0x01,         #      Usage Page (Desktop),
+             #0x26, 0xFF, 0x00,   #      Logical Maximum (255),
+             #0x46, 0xFF, 0x00,   #      Physical Maximum (255),
+             #0x09, 0x30,         #      Usage (X),
+             #0x09, 0x31,         #      Usage (Y),
+             #0x75, 0x08,         #      Report Size (8),
+             #0x95, 0x02,         #      Report Count (2),
+             #0x81, 0x02,         #      Input (Variable),
+             #0xC0                #  End Collection
+            )))
+
 def raw_hid_descriptor(report_id):
     if report_id != 0:
         raise ValueError("raw hid must not have a report id")
@@ -291,5 +404,6 @@ REPORT_DESCRIPTOR_FUNCTIONS = {
     "GAMEPAD" : gamepad_hid_descriptor,
     "DIGITIZER" : digitizer_hid_descriptor,
     "XAC_COMPATIBLE_GAMEPAD" : xac_compatible_gamepad_hid_descriptor,
+    "NX_COMPATIBLE_GAMEPAD": nx_compatible_gamepad_hid_descriptor,
     "RAW" : raw_hid_descriptor,
 }
